@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Stripe source workspace dependencies
+        run: pnpm --filter @stripe/sync-source-stripe... build
+
       - name: Run targeted Stripe source regression tests
         run: pnpm --filter @stripe/sync-source-stripe exec vitest run src/process-event.test.ts src/resourceRegistry.test.ts src/index.test.ts
 
