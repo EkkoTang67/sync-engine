@@ -1,0 +1,42 @@
+name: SABLE Patch Style Validation
+
+on:
+  push:
+    branches:
+      - sable/validation-only
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate changed TypeScript files
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out validation branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: 10.21.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build source workspace dependencies
+        run: pnpm --filter @stripe/sync-source-stripe... build
+
+      - name: Check formatting for changed TypeScript files
+        run: pnpm exec prettier --check packages/source-stripe/src/process-event.ts packages/source-stripe/src/process-event.test.ts packages/source-stripe/src/resourceRegistry.test.ts
+
+      - name: Lint changed TypeScript files
+        run: pnpm exec eslint packages/source-stripe/src/process-event.ts packages/source-stripe/src/process-event.test.ts packages/source-stripe/src/resourceRegistry.test.ts
